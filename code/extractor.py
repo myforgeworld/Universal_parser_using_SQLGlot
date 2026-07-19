@@ -35,7 +35,7 @@ class SemanticExtractor:
         self.extract_objects(ast, semantic)
         
         self.extract_tables(ast, semantic)
-        # self.extract_joins(ast, semantic)
+        self.extract_joins(ast, semantic)
         
         relationships = self.extract_unique_relationships(semantic)
         
@@ -49,6 +49,15 @@ class SemanticExtractor:
         return str(t).lower()
     
     def get_join_source(self, node):
+                
+        # CTE
+        if isinstance(node, exp.Table) and node.db == '':
+
+            return {
+                "type": "cte",
+                "name": self.lower_case(node.name),
+                "alias": node.alias_or_name
+            }
 
         # Обычная таблица
         if isinstance(node, exp.Table):
@@ -74,19 +83,9 @@ class SemanticExtractor:
                 "alias": node.alias_or_name
             }
 
-        # CTE
-        if isinstance(node, exp.CTE):
-
-            return {
-                "type": "cte",
-                "name": node.alias_or_name,
-                "alias": node.alias_or_name
-            }
-
         return {
             "type": type(node).__name__
         }
-    
         
     # Вывести таблицы
     def extract_tables(self, ast, semantic):

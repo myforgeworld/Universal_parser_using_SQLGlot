@@ -17,6 +17,8 @@ class SemanticJSON:
     metadata: dict = field(default_factory=dict) # Думаю буду использовать Jira/Confluence
     
     objects: dict[str, Objects] = field(default_factory=dict)
+
+    cte_num: int = 0
     
     tables: list = field(default_factory=list)
 
@@ -31,13 +33,26 @@ class SemanticExtractor:
         ast = sqlglot.parse_one(sql) # AST(Abstract  Syntax Tree) - это дерево которое полностью повторяет SQL сиентакс
                 
         semantic = SemanticJSON()        
-        
+
+        main_query = ast.copy()
+        main_query.args.pop("with_", None) # Удаляем все кроме основного запроса
+        level = 'main'
+
+        self.extract_objects(main_query, semantic, level)
+        self.extract_from(main_query, semantic, level)
+        self.extract_joins(main_query, semantic, level)
+    
         self.extract_objects(ast, semantic)
+
+        # print(ast.find(exp.From).args)
+        # self.extract_from(ast, semantic)
+
+        # self.extract_objects(ast, semantic)
         
-        self.extract_tables(ast, semantic)
-        self.extract_joins(ast, semantic)
+        # self.extract_tables(ast, semantic)
+        # self.extract_joins(ast, semantic)
         
-        relationships = self.extract_unique_relationships(semantic)
+        # relationships = self.extract_unique_relationships(semantic)
         
         # for k in semantic.objects.keys():
         #     semantic.tables.append(semantic.objects[k].tables)
@@ -88,17 +103,45 @@ class SemanticExtractor:
         }
         
     # Вывести таблицы
-    def extract_tables(self, ast, semantic):
+    def extract_tables(self, ast, semantic, ttype, level):
                 
         for table in ast.find_all(exp.Table):
+            if semantic.cte_num > 0:
+                num = f"-{semantic.cte_num}"
+            else:
+                num = ''
 
             semantic.tables.append({
-                "table": self.lower_case(table.name),
+                "type": ttype,
                 "alias": table.alias_or_name,
-                table.alias_or_name: ".".join(
-                    x for x in [(self.lower_case(table.catalog) or None), self.lower_case(table.db), self.lower_case(table.name)] if x
+                f"{level}:{table.alias_or_name}": f"{level}-{ttype}:{table.alias_or_name}{num}",
+                f"{level}-{ttype}:{table.alias_or_name}{num}": ".".join(
+                    x for x in [(self.lower_case(table.catalog) or None), (self.lower_case(table.db) or None), self.lower_case(table.name)] if x
                 )
             })
+
+    def get_type_of_table(self, ast, semantic):
+        ttype = ''
+
+        if isinstance(ast, exp.Table) and ast.db == '':
+            ttype = 'cte'
+        elif isinstance(ast, exp.Table) and ast.db != '':
+            ttype = 'table'
+        elif isinstance(ast):
+            ttype = 'subquery'
+            semantic.cte_num += 1
+
+        return ttype
+
+    def extract_from(self, ast, semantic, level):
+        ast_from = ast.find(exp.From).this
+        
+        ttype = self.get_type_of_table(ast_from, semantic)
+
+        self.extract_tables(ast_from, semantic, ttype, level)
+
+        
+
     
     # Вывести join-ы        
     def is_join_key(self, node):
@@ -107,15 +150,15 @@ class SemanticExtractor:
             and isinstance(node.right, exp.Column)
         )
 
-    def extract_operand(self, node, semantic):
+    def extract_operand(self, node, semantic, level):
 
         if isinstance(node, exp.Column):
             
             for i in semantic.tables:
                 for j in i.keys():
-                    if j == node.table:
+                    if j == f"{level}:{node.table}":
                         return {
-                            "table": i[node.table],
+                            "table": i[f"{level}:{node.table}"],
                             "column": node.name
                         }
                     else:
@@ -131,7 +174,7 @@ class SemanticExtractor:
         }
     
     
-    def extract_conditions(self, node, semantic):
+    def extract_conditions(self, node, semantic, level):
         """
         Возвращает список всех элементарных условий из ON.
         """
@@ -142,8 +185,8 @@ class SemanticExtractor:
         # Разбираем AND
         if isinstance(node, exp.And):
             return (
-                self.extract_conditions(node.left, semantic)
-                + self.extract_conditions(node.right, semantic)
+                self.extract_conditions(node.left, semantic, level)
+                + self.extract_conditions(node.right, semantic, level)
             )
 
         # Разбираем OR
@@ -151,8 +194,8 @@ class SemanticExtractor:
             return [{
                 "operator": "OR",
                 "conditions": (
-                    self.extract_conditions(node.left, semantic)
-                    + self.extract_conditions(node.right, semantic)
+                    self.extract_conditions(node.left, semantic, level)
+                    + self.extract_conditions(node.right, semantic, level)
                 )
             }]
 
@@ -168,8 +211,8 @@ class SemanticExtractor:
             
             return [{
                 "operator": node.key,
-                "left": self.extract_operand(node.left, semantic),
-                "right": self.extract_operand(node.right, semantic),
+                "left": self.extract_operand(node.left, semantic, level),
+                "right": self.extract_operand(node.right, semantic, level),
                 "is_join_key": self.is_join_key(node)
             }]
 
@@ -178,20 +221,14 @@ class SemanticExtractor:
         }]
     
     
-    def extract_joins(self, ast, semantic):
+    def extract_joins(self, ast, semantic, level):
         
         for join in ast.find_all(exp.Join):    
+
+            ttype = self.get_type_of_table(join.this, semantic)
+            self.extract_tables(join.this, semantic, ttype, level)
             
-            # subq_fl = False
-            
-            conditions = self.extract_conditions(join.args.get("on"), semantic)
-            
-            # if isinstance(join.this, exp.Subquery):
-            #     subq_fl = True
-            #     subq_name = f"subquery:{join.this.alias}"
-            #     subq_columns = semantic.objects[subq_name].column_lineage
-                
-            #     print(subq_columns)
+            conditions = self.extract_conditions(join.args.get("on"), semantic, level)
             
             
             join_keys = [
@@ -243,17 +280,19 @@ class SemanticExtractor:
             
     
     
-    def extract_objects(self, ast, semantic):
+    def extract_objects(self, ast, semantic, level):
         
         for cte in ast.find_all(exp.CTE):
-            key = f"cte:{cte.alias}"
+            key = f"{level}:cte:{cte.alias}"
             
             semantic.objects[key] = Objects(alias_name=cte.alias, obj_type='cte')
             
-            self.extract_tables(
-                cte.this,
-                semantic.objects[key]
-            )
+            # self.extract_tables(
+            #     cte.this,
+            #     semantic.objects[key]
+            # )
+
+            self.extract_from(cte.this, semantic.objects[key])
             
             self.extract_joins(
                 cte.this,
@@ -267,15 +306,17 @@ class SemanticExtractor:
             )
         
         for subquery in ast.find_all(exp.Subquery):
-            key = f"subquery:{subquery.alias}"
+            key = f"{level}:subquery:{subquery.alias}"
             
             semantic.objects[key] = Objects(alias_name=subquery.alias, obj_type='subquery')
             
-            self.extract_tables(
-                subquery.this,
-                semantic.objects[key]
-            )
+            # self.extract_tables(
+            #     subquery.this,
+            #     semantic.objects[key]
+            # )
             
+            self.extract_from(subquery.this, semantic.objects[key])
+
             self.extract_joins(
                 subquery.this,
                 semantic.objects[key]

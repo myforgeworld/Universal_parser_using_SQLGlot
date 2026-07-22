@@ -304,7 +304,7 @@ class SemanticExtractor:
                 semantic.objects[key],
                 cte.alias
             )
-        
+         
         for subquery in ast.find_all(exp.Subquery):
             key = f"{level}:subquery:{subquery.alias}"
             

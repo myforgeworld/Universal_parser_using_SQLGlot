@@ -53,15 +53,17 @@ class SemanticExtractor:
         other_query = ast.copy()
         ast_other = other_query.args.get("with_")
 
-        self.extract_cte(ast_other, semantic)
-
         main_query = ast.copy()
         main_query.args.pop("with_", None) # Удаляем все кроме основного запроса
         level = 'main'
 
-        self.extract_subquery(main_query, semantic, level)
-        self.extract_from(main_query, semantic, level)
-        self.extract_joins(main_query, semantic, level)
+        selects = list(self.extract_union_selects(ast))
+        
+        for i in selects:
+            print(i)
+        # self.extract_subquery(main_query, semantic, level)
+        # self.extract_from(main_query, semantic, level)
+        # self.extract_joins(main_query, semantic, level)
         
         # relationships = self.extract_unique_relationships(semantic)
         
@@ -73,6 +75,13 @@ class SemanticExtractor:
     
     def lower_case(self, t):
         return str(t).lower()
+
+    def extract_union_selects(self, node):
+        if isinstance(node, exp.Union):
+            yield from self.extract_union_selects(node.this)
+            yield from self.extract_union_selects(node.expression)
+        else:
+            yield node
     
     def get_join_source(self, node):
                 

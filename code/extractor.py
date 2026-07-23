@@ -122,7 +122,7 @@ class SemanticExtractor:
                 "type": ttype,
                 "alias": alias_name,
                 "level": level,
-                "name": f"{ttype}-{alias_name}",
+                "name": f"{level}-{ttype}-{alias_name}",
                 "global_path": f"{level}-{ttype}-{alias_name}"
             }
         elif ttype == 'cte':
@@ -246,9 +246,11 @@ class SemanticExtractor:
     
     
     def extract_joins(self, ast, semantic, level):
+        select = ast.find(exp.Select)
+        joins = select.args.get("joins", [])
 
-        for join in ast.find_all(exp.Join):
-            
+        for join in joins:
+
             ttype = self.get_type_of_table(join.this, semantic)
             self.extract_tables(join.this, semantic, ttype, level)
             

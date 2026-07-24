@@ -73,7 +73,7 @@ class SemanticExtractor:
             self.extract_joins(query, semantic.mains[name], level)
 
         
-        # relationships = self.extract_unique_relationships(semantic)
+        relationships = self.extract_unique_relationships(semantic)
         
         return semantic
         
@@ -400,90 +400,67 @@ class SemanticExtractor:
     
     # ==============================================================================================================================
     
-    # Нужно исправить по новой структуре
+    def resolve_column_lineage(self, table, column, semantic, visited=None):
+        """
+        Рекурсивно разворачивает table.column до физической(их) таблицы(таблиц).
+        table может быть:
+        - физической таблицей (не найдётся в semantic.objects) -> конечная точка
+        - global_path CTE/подзапроса (есть в semantic.objects) -> разворачиваем
+            через column_lineage его select_block'ов
+        """
+        if visited is None:
+            visited = set()
 
-    def resolve_column_lineage(
-        self,
-        operand,
-        semantic,
-        current_object=None
-    ):
-
-        # Физическая таблица
-        if "table" in operand:
-
-            return [
-                {
-                    "table": operand["table"],
-                    "column": operand["column"]
-                }
-            ]
-
-        if "expression" not in operand:
+        key = (table, column)
+        if key in visited:
+            # защита от циклов (например, self-join через CTE)
             return []
+        visited.add(key)
 
-        expression = operand["expression"]
+        obj = semantic.objects.get(table)
 
-        if "." not in expression:
-            return []
+        # Физическая таблица - дальше разворачивать некуда
+        if obj is None:
+            return [{"table": table, "column": column}]
 
-        alias, column = expression.split(
-            ".",
-            1
-        )
+        lookup_key = f".{column}"
+        results = []
 
-        alias = self.lower_case(alias)
+        for block in obj.select_blocks:
 
-        # ----------------------------
-        # SUBQUERY
-        # ----------------------------
+            lineage_entries = block.column_lineage.get(lookup_key)
 
-        subquery_key = f"subquery:{alias}"
+            # На случай, если alias не пустой - ищем по суффиксу
+            if lineage_entries is None:
+                for k, v in block.column_lineage.items():
+                    if k.endswith(f".{column}"):
+                        lineage_entries = v
+                        break
 
-        if subquery_key in semantic.objects:
+            if not lineage_entries:
+                continue
 
-            obj = semantic.objects[
-                subquery_key
-            ]
+            for entry in lineage_entries:
+                results.extend(
+                    self.resolve_column_lineage(
+                        entry["table"],
+                        entry["column"],
+                        semantic,
+                        visited
+                    )
+                )
 
-            return obj.column_lineage.get(
-                expression,
-                []
-            )
+        return results
 
-        # ----------------------------
-        # CTE
-        # ----------------------------
 
-        cte_key = f"cte:{alias}"
-
-        if cte_key in semantic.objects:
-
-            obj = semantic.objects[
-                cte_key
-            ]
-
-            return obj.column_lineage.get(
-                expression,
-                []
-            )
-
-        return []
-    
     def normalize_relationship(self, relationship):
-        left = (
-            relationship["left_table"],
-            relationship["left_column"]
-        )
+        """
+        Делает связь независимой от направления (A=B и B=A - одна и та же связь).
+        """
+        left = (relationship["left_table"], relationship["left_column"])
+        right = (relationship["right_table"], relationship["right_column"])
 
-        right = (
-            relationship["right_table"],
-            relationship["right_column"]
-        )
-
-        # Чтобы A = B и B = A считались одной связью
         if left > right:
-
             left, right = right, left
 
         return {
@@ -491,74 +468,73 @@ class SemanticExtractor:
             "left_column": left[1],
 
             "right_table": right[0],
-            "right_column": right[1]
+            "right_column": right[1],
+
+            "operator": relationship.get("operator"),
+            "join_type": relationship.get("join_type"),
         }
-    
-    
+
+
     def extract_unique_relationships(self, semantic):
-
+        """
+        Проходит по всем join'ам (и верхнеуровневым в mains, и вложенным
+        в select_blocks CTE/подзапросов), разворачивает join_keys до
+        физических таблиц и возвращает уникальный список связей.
+        """
         unique_relationships = set()
-
         relationships = []
 
-        for join in semantic.joins:
+        def process_joins(joins):
+            for join in joins:
+                for condition in join.get("join_keys", []):
 
-            for condition in join["join_keys"]:
+                    left = condition["left"]
+                    right = condition["right"]
 
-                left = condition["left"]
-                right = condition["right"]
+                    left_columns = self.resolve_column_lineage(
+                        left["table"], left["column"], semantic
+                    )
+                    right_columns = self.resolve_column_lineage(
+                        right["table"], right["column"], semantic
+                    )
 
-                left_columns = self.resolve_column_lineage(
-                    left,
-                    semantic
-                )
+                    for left_col in left_columns:
+                        for right_col in right_columns:
 
-                right_columns = self.resolve_column_lineage(
-                    right,
-                    semantic
-                )
+                            # пропускаем тривиальные "связи с самим собой"
+                            if (
+                                left_col["table"] == right_col["table"]
+                                and left_col["column"] == right_col["column"]
+                            ):
+                                continue
 
-                for left_col in left_columns:
+                            rel = self.normalize_relationship({
+                                "left_table": left_col["table"],
+                                "left_column": left_col["column"],
+                                "right_table": right_col["table"],
+                                "right_column": right_col["column"],
+                                "operator": condition.get("operator"),
+                                "join_type": join.get("type"),
+                            })
 
-                    for right_col in right_columns:
+                            rel_key = (
+                                rel["left_table"], rel["left_column"],
+                                rel["right_table"], rel["right_column"],
+                            )
 
-                        left_key = (
-                            left_col["table"],
-                            left_col["column"]
-                        )
+                            if rel_key in unique_relationships:
+                                continue
 
-                        right_key = (
-                            right_col["table"],
-                            right_col["column"]
-                        )
+                            unique_relationships.add(rel_key)
+                            relationships.append(rel)
 
-                        # Делаем связь независимой от направления
-                        relationship_key = tuple(
-                            sorted([
-                                left_key,
-                                right_key
-                            ])
-                        )
+        # верхнеуровневые join'ы (main_1, main_2, ...)
+        for main in semantic.mains.values():
+            process_joins(main.joins)
 
-                        if relationship_key in unique_relationships:
-                            continue
-
-                        unique_relationships.add(
-                            relationship_key
-                        )
-
-                        relationships.append({
-
-                            "left_table": relationship_key[0][0],
-                            "left_column": relationship_key[0][1],
-
-                            "right_table": relationship_key[1][0],
-                            "right_column": relationship_key[1][1],
-
-                            "operator": condition["operator"],
-
-                            "join_type": join["type"]
-                        })
+        # join'ы внутри CTE и подзапросов
+        for obj in semantic.objects.values():
+            for block in obj.select_blocks:
+                process_joins(block.joins)
 
         return relationships
-        

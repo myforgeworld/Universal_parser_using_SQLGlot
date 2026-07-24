@@ -3,6 +3,7 @@ from sqlglot import exp
 
 from dataclasses import dataclass, field, asdict
 
+
 @dataclass
 class Tables:
     type: str
@@ -10,6 +11,11 @@ class Tables:
     level: str
     name: str
     global_path: str
+
+@dataclass
+class Mains:
+    tables: dict[str, Tables] = field(default_factory=dict)
+    joins: list = field(default_factory=list)
 
 @dataclass
 class Objects:
@@ -31,9 +37,7 @@ class SemanticJSON:
     
     objects: dict[str, Objects] = field(default_factory=dict)
     
-    tables: dict[str, Tables] = field(default_factory=dict)
-
-    joins: list = field(default_factory=list)
+    mains: dict[str, Mains] = field(default_factory=dict)
 
 
     def increment_cte(self):
@@ -53,14 +57,26 @@ class SemanticExtractor:
         other_query = ast.copy()
         ast_other = other_query.args.get("with_")
 
+        self.extract_cte(ast_other, semantic)
+
         main_query = ast.copy()
         main_query.args.pop("with_", None) # Удаляем все кроме основного запроса
         level = 'main'
 
-        selects = list(self.extract_union_selects(ast))
+        selects = list(self.extract_union_selects(main_query))
         
-        for i in selects:
-            print(i)
+        for i in range(len(selects)):
+            print(i+1)
+            name = f'main_{i+1}'
+            query = selects[i]
+            level = name
+
+            semantic.mains[name] = Mains()
+
+            self.extract_subquery(query, semantic, level)
+            self.extract_from(query, semantic.mains[name], level)
+            self.extract_joins(query, semantic.mains[name], level)
+
         # self.extract_subquery(main_query, semantic, level)
         # self.extract_from(main_query, semantic, level)
         # self.extract_joins(main_query, semantic, level)

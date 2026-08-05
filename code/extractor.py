@@ -1,8 +1,11 @@
 import sqlglot
 from sqlglot import exp
+import json
+import os
 
 from dataclasses import dataclass, field, asdict
 
+JSON_PATH = 'output\\data.json'
 
 @dataclass
 class Tables:
@@ -39,8 +42,7 @@ class SemanticJSON:
     objects: dict[str, Objects] = field(default_factory=dict)
     
     mains: dict[str, Mains] = field(default_factory=dict)
-    
-
+   
 
 class SemanticExtractor:
     
@@ -75,9 +77,34 @@ class SemanticExtractor:
         
         relationships_print = self.extract_unique_relationships_print(semantic)
         relationships_json = self.extract_unique_relationships_json(semantic)
+        
+        self.merge_relationships(relationships_json)
 
         return relationships_print, relationships_json
         
+    def merge_relationships(self, new_relationships):
+
+        if not os.path.exists(JSON_PATH):
+            with open(JSON_PATH, "w") as f:
+                json.dump({}, f, indent=4)
+        
+        try:
+            with open(JSON_PATH) as f:
+                data = json.load(f)
+        except (json.JSONDecodeError, FileNotFoundError):
+            data = {}
+
+        existing = set(data.keys())
+
+        for key, rel in new_relationships.items():
+
+            if key not in existing:
+                data[key] = rel
+                existing.add(key)
+
+        with open(JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+    
     
     def lower_case(self, t):
         return str(t).lower()

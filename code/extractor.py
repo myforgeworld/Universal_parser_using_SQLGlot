@@ -356,6 +356,7 @@ class SemanticExtractor:
             return
 
         for subquery in subqueries:
+            
             key = f"{level}-subquery-{subquery.alias}"
             semantic.objects[key] = Objects(alias_name=subquery.alias, obj_type='subquery', parent=level)
 
@@ -381,6 +382,12 @@ class SemanticExtractor:
                     semantic.objects[key].select_blocks[i],
                     query.alias,
                     subquery_level
+                )
+                
+                self.extract_subquery(
+                    query,
+                    semantic,
+                    subquery_level,
                 )
 
     def extract_cte(self, ast, semantic):

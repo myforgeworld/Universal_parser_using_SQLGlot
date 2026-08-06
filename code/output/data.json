@@ -1,76 +1,4 @@
 {
-    "cbs.c_user.id|eq|cbs.e_reqexc.tus_id": {
-        "left_table": "cbs.c_user",
-        "left_column": "id",
-        "right_table": "cbs.e_reqexc",
-        "right_column": "tus_id",
-        "operator": "eq",
-        "join_type": "left"
-    },
-    "cbs.e_reqexc.id|eq|cbs.i_dea.id": {
-        "left_table": "cbs.e_reqexc",
-        "left_column": "id",
-        "right_table": "cbs.i_dea",
-        "right_column": "id",
-        "operator": "eq",
-        "join_type": "right"
-    },
-    "cbs.c_dep_std.dep_id|eq|cbs.e_reqexc.dep_id": {
-        "left_table": "cbs.c_dep_std",
-        "left_column": "dep_id",
-        "right_table": "cbs.e_reqexc",
-        "right_column": "dep_id",
-        "operator": "eq",
-        "join_type": "right"
-    },
-    "cbs.main.id|eq|cbs.t_dea.id": {
-        "left_table": "cbs.main",
-        "left_column": "id",
-        "right_table": "cbs.t_dea",
-        "right_column": "id",
-        "operator": "eq",
-        "join_type": "inner"
-    },
-    "cbs.other.id|eq|cbs.t_dea.id": {
-        "left_table": "cbs.other",
-        "left_column": "id",
-        "right_table": "cbs.t_dea",
-        "right_column": "id",
-        "operator": "eq",
-        "join_type": "inner"
-    },
-    "cbs.main.dep_id|eq|cbs.t_dea.dep_id": {
-        "left_table": "cbs.main",
-        "left_column": "dep_id",
-        "right_table": "cbs.t_dea",
-        "right_column": "dep_id",
-        "operator": "eq",
-        "join_type": "inner"
-    },
-    "cbs.other.dep_id|eq|cbs.t_dea.dep_id": {
-        "left_table": "cbs.other",
-        "left_column": "dep_id",
-        "right_table": "cbs.t_dea",
-        "right_column": "dep_id",
-        "operator": "eq",
-        "join_type": "inner"
-    },
-    "cbs.i_dea.id|eq|cbs.t_dea.id": {
-        "left_table": "cbs.i_dea",
-        "left_column": "id",
-        "right_table": "cbs.t_dea",
-        "right_column": "id",
-        "operator": "eq",
-        "join_type": "right"
-    },
-    "cbs.c_dep_std.dep_id|eq|cbs.t_dea.dep_id": {
-        "left_table": "cbs.c_dep_std",
-        "left_column": "dep_id",
-        "right_table": "cbs.t_dea",
-        "right_column": "dep_id",
-        "operator": "eq",
-        "join_type": "right"
-    },
     "cbs.c_user.main_id|eq|cbs.main.id": {
         "left_table": "cbs.c_user",
         "left_column": "main_id",
@@ -103,11 +31,19 @@
         "operator": "eq",
         "join_type": "inner"
     },
-    "cbs.c_dep_std.dep_id|eq|cbs.i_dea.dea_dep_id": {
-        "left_table": "cbs.c_dep_std",
-        "left_column": "dep_id",
-        "right_table": "cbs.i_dea",
-        "right_column": "dea_dep_id",
+    "cbs.main.id|eq|main_1-subquery-m:main_1-subquery-l2.ord_id": {
+        "left_table": "cbs.main",
+        "left_column": "id",
+        "right_table": "main_1-subquery-m:main_1-subquery-l2",
+        "right_column": "ord_id",
+        "operator": "eq",
+        "join_type": "inner"
+    },
+    "cbs.other.id|eq|main_1-subquery-m:main_1-subquery-l2.ord_id": {
+        "left_table": "cbs.other",
+        "left_column": "id",
+        "right_table": "main_1-subquery-m:main_1-subquery-l2",
+        "right_column": "ord_id",
         "operator": "eq",
         "join_type": "inner"
     }

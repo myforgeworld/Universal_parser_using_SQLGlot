@@ -55,7 +55,8 @@ class SemanticExtractor:
         other_query = ast.copy()
         ast_other = other_query.args.get("with_")
 
-        self.extract_cte(ast_other, semantic)
+        if ast_other:
+            self.extract_cte(ast_other, semantic)
 
         main_query = ast.copy()
         main_query.args.pop("with_", None) # Удаляем все кроме основного запроса
@@ -351,7 +352,7 @@ class SemanticExtractor:
         subqueries = list(ast.find_all(exp.Subquery, bfs=False))
             
         if not subqueries:
-            print("Subquery нет")
+            # print("Subquery нет")
             return
 
         for subquery in subqueries:

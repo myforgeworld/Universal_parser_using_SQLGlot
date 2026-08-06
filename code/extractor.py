@@ -5,8 +5,6 @@ import os
 
 from dataclasses import dataclass, field, asdict
 
-JSON_PATH = 'output\\data.json'
-
 @dataclass
 class Tables:
     type: str
@@ -46,7 +44,8 @@ class SemanticJSON:
 
 class SemanticExtractor:
     
-    def extract(self, sql: str):
+    def extract(self, sql: str, save_path ='output\\data.json'):
+        self.json_path = save_path
         
         ast = sqlglot.parse_one(sql) # AST(Abstract  Syntax Tree) - это дерево которое полностью повторяет SQL сиентакс
                 
@@ -85,12 +84,12 @@ class SemanticExtractor:
         
     def merge_relationships(self, new_relationships):
 
-        if not os.path.exists(JSON_PATH):
-            with open(JSON_PATH, "w") as f:
+        if not os.path.exists(self.json_path):
+            with open(self.json_path, "w") as f:
                 json.dump({}, f, indent=4)
         
         try:
-            with open(JSON_PATH) as f:
+            with open(self.json_path) as f:
                 data = json.load(f)
         except (json.JSONDecodeError, FileNotFoundError):
             data = {}
@@ -103,7 +102,7 @@ class SemanticExtractor:
                 data[key] = rel
                 existing.add(key)
 
-        with open(JSON_PATH, "w", encoding="utf-8") as f:
+        with open(self.json_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
     
     
@@ -394,7 +393,7 @@ class SemanticExtractor:
         ctes = list(ast.find_all(exp.CTE, bfs=False))
     
         if not ctes:
-            print("CTE нет")
+            # print("CTE нет")
             return
 
         for cte in ctes:

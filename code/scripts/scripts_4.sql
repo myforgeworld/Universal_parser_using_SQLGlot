@@ -1,9 +1,16 @@
 with main as (
+    with main_2 as (
+        select
+            m.id,
+            m.dep_id
+        from
+            cbs.table_1 as m
+    )
     select
         m.id,
         m.dep_id
     from
-        cbs.main as m
+        main_2 as m
     union all
     select
         c.id,

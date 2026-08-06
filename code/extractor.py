@@ -390,7 +390,7 @@ class SemanticExtractor:
                     subquery_level,
                 )
 
-    def extract_cte(self, ast, semantic):
+    def extract_cte(self, ast, semantic, level=None):
         ctes = list(ast.find_all(exp.CTE, bfs=False))
     
         if not ctes:
@@ -427,6 +427,12 @@ class SemanticExtractor:
                 )
                 
                 self.extract_subquery(
+                    query,
+                    semantic,
+                    cte_level
+                )
+                
+                self.extract_cte(
                     query,
                     semantic,
                     cte_level

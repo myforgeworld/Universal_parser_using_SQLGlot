@@ -126,5 +126,29 @@
         "right_column": "id",
         "operator": "eq",
         "join_type": "inner"
+    },
+    "cbs.c_user.main_id|eq|cbs.table_1.id": {
+        "left_table": "cbs.c_user",
+        "left_column": "main_id",
+        "right_table": "cbs.table_1",
+        "right_column": "id",
+        "operator": "eq",
+        "join_type": "inner"
+    },
+    "cbs.c_user.dep_id|eq|cbs.table_1.dep_id": {
+        "left_table": "cbs.c_user",
+        "left_column": "dep_id",
+        "right_table": "cbs.table_1",
+        "right_column": "dep_id",
+        "operator": "eq",
+        "join_type": "inner"
+    },
+    "cbs.c_dep_user.ord_id|eq|cbs.table_1.id": {
+        "left_table": "cbs.c_dep_user",
+        "left_column": "ord_id",
+        "right_table": "cbs.table_1",
+        "right_column": "id",
+        "operator": "eq",
+        "join_type": "inner"
     }
 }

@@ -215,8 +215,10 @@ class SemanticExtractor:
     # Вывести join-ы        
     def is_join_key(self, node):
         return (
-            isinstance(node.left, exp.Column)
+            isinstance(node, exp.EQ)
+            and isinstance(node.left, exp.Column)
             and isinstance(node.right, exp.Column)
+            and node.left.table != node.right.table
         )
 
     def extract_operand(self, node, semantic, level):

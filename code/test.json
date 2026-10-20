@@ -1,0 +1,630 @@
+{
+    "metadata": {},
+    "objects": {
+        "main-cte-main": {
+            "alias_name": "main",
+            "obj_type": "cte",
+            "parent": "main",
+            "select_blocks": [
+                {
+                    "block_name": "select_1",
+                    "tables": {
+                        "m": {
+                            "type": "table",
+                            "alias": "m",
+                            "level": "main-cte-main:select_1",
+                            "name": "cbs.main",
+                            "global_path": "main-cte-main:select_1"
+                        }
+                    },
+                    "joins": [],
+                    "column_lineage": {
+                        "id": [
+                            {
+                                "level": "main-cte-main:select_1",
+                                "table": "cbs.main",
+                                "column": "id"
+                            }
+                        ],
+                        "dep_id": [
+                            {
+                                "level": "main-cte-main:select_1",
+                                "table": "cbs.main",
+                                "column": "dep_id"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "block_name": "select_2",
+                    "tables": {
+                        "c": {
+                            "type": "table",
+                            "alias": "c",
+                            "level": "main-cte-main:select_2",
+                            "name": "cbs.other",
+                            "global_path": "main-cte-main:select_2"
+                        }
+                    },
+                    "joins": [],
+                    "column_lineage": {
+                        "id": [
+                            {
+                                "level": "main-cte-main:select_2",
+                                "table": "cbs.other",
+                                "column": "id"
+                            }
+                        ],
+                        "dep_id": [
+                            {
+                                "level": "main-cte-main:select_2",
+                                "table": "cbs.other",
+                                "column": "dep_id"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "main-cte-table_1": {
+            "alias_name": "table_1",
+            "obj_type": "cte",
+            "parent": "main",
+            "select_blocks": [
+                {
+                    "block_name": "select_1",
+                    "tables": {
+                        "user": {
+                            "type": "table",
+                            "alias": "user",
+                            "level": "main-cte-table_1:select_1",
+                            "name": "cbs.c_user",
+                            "global_path": "main-cte-table_1:select_1"
+                        },
+                        "m": {
+                            "type": "subquery",
+                            "alias": "m",
+                            "level": "main-cte-table_1:select_1",
+                            "name": "main-cte-table_1:select_1-subquery-m",
+                            "global_path": "main-cte-table_1:select_1-subquery-m"
+                        }
+                    },
+                    "joins": [
+                        {
+                            "type": "inner",
+                            "table": {
+                                "type": "subquery",
+                                "alias": "m"
+                            },
+                            "join_keys": [
+                                {
+                                    "operator": "eq",
+                                    "left": {
+                                        "table": "main-cte-table_1:select_1-subquery-m",
+                                        "column": "id"
+                                    },
+                                    "right": {
+                                        "table": "cbs.c_user",
+                                        "column": "main_id"
+                                    }
+                                },
+                                {
+                                    "operator": "eq",
+                                    "left": {
+                                        "table": "main-cte-table_1:select_1-subquery-m",
+                                        "column": "dep_id"
+                                    },
+                                    "right": {
+                                        "table": "cbs.c_user",
+                                        "column": "dep_id"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "column_lineage": {
+                        "id": [
+                            {
+                                "level": "main-cte-table_1:select_1",
+                                "table": "cbs.c_user",
+                                "column": "id"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "main-cte-table_1:select_1-subquery-m": {
+            "alias_name": "m",
+            "obj_type": "subquery",
+            "parent": "main-cte-table_1:select_1",
+            "select_blocks": [
+                {
+                    "block_name": "main_1",
+                    "tables": {
+                        "m3": {
+                            "type": "cte",
+                            "alias": "m3",
+                            "level": "main-cte-table_1:select_1-subquery-m:main_1",
+                            "name": "main-cte-main",
+                            "global_path": "main-cte-main"
+                        }
+                    },
+                    "joins": [],
+                    "column_lineage": {
+                        "id": [
+                            {
+                                "level": "main-cte-table_1:select_1-subquery-m:main_1",
+                                "table": "main-cte-main",
+                                "column": "id"
+                            }
+                        ],
+                        "dep_id": [
+                            {
+                                "level": "main-cte-table_1:select_1-subquery-m:main_1",
+                                "table": "main-cte-main",
+                                "column": "dep_id"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "main_1-subquery-m2": {
+            "alias_name": "m2",
+            "obj_type": "subquery",
+            "parent": "main_1",
+            "select_blocks": [
+                {
+                    "block_name": "main_1",
+                    "tables": {
+                        "i": {
+                            "type": "table",
+                            "alias": "i",
+                            "level": "main_1-subquery-m2:main_1",
+                            "name": "cbs.i_dea",
+                            "global_path": "main_1-subquery-m2:main_1"
+                        },
+                        "cds": {
+                            "type": "table",
+                            "alias": "cds",
+                            "level": "main_1-subquery-m2:main_1",
+                            "name": "cbs.c_dep_std",
+                            "global_path": "main_1-subquery-m2:main_1"
+                        }
+                    },
+                    "joins": [
+                        {
+                            "type": "inner",
+                            "table": {
+                                "type": "table",
+                                "name": "cbs.c_dep_std",
+                                "alias": "cds"
+                            },
+                            "join_keys": [
+                                {
+                                    "operator": "eq",
+                                    "left": {
+                                        "table": "cbs.c_dep_std",
+                                        "column": "dep_id"
+                                    },
+                                    "right": {
+                                        "table": "cbs.i_dea",
+                                        "column": "dea_dep_id"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "column_lineage": {
+                        "id": [
+                            {
+                                "level": "main_1-subquery-m2:main_1",
+                                "table": "cbs.i_dea",
+                                "column": "id"
+                            }
+                        ],
+                        "dep_id": [
+                            {
+                                "level": "main_1-subquery-m2:main_1",
+                                "table": "cbs.c_dep_std",
+                                "column": "dep_id"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "main_2-subquery-m2": {
+            "alias_name": "m2",
+            "obj_type": "subquery",
+            "parent": "main_2",
+            "select_blocks": [
+                {
+                    "block_name": "main_1",
+                    "tables": {
+                        "i": {
+                            "type": "table",
+                            "alias": "i",
+                            "level": "main_2-subquery-m2:main_1",
+                            "name": "cbs.i_dea",
+                            "global_path": "main_2-subquery-m2:main_1"
+                        },
+                        "cds": {
+                            "type": "table",
+                            "alias": "cds",
+                            "level": "main_2-subquery-m2:main_1",
+                            "name": "cbs.c_dep_std",
+                            "global_path": "main_2-subquery-m2:main_1"
+                        }
+                    },
+                    "joins": [
+                        {
+                            "type": "inner",
+                            "table": {
+                                "type": "table",
+                                "name": "cbs.c_dep_std",
+                                "alias": "cds"
+                            },
+                            "join_keys": [
+                                {
+                                    "operator": "eq",
+                                    "left": {
+                                        "table": "cbs.c_dep_std",
+                                        "column": "dep_id"
+                                    },
+                                    "right": {
+                                        "table": "cbs.i_dea",
+                                        "column": "dea_dep_id"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "column_lineage": {
+                        "id": [
+                            {
+                                "level": "main_2-subquery-m2:main_1",
+                                "table": "cbs.i_dea",
+                                "column": "id"
+                            }
+                        ],
+                        "dep_id": [
+                            {
+                                "level": "main_2-subquery-m2:main_1",
+                                "table": "cbs.c_dep_std",
+                                "column": "dep_id"
+                            }
+                        ]
+                    }
+                }
+            ]
+        },
+        "main_3-subquery-m3": {
+            "alias_name": "m3",
+            "obj_type": "subquery",
+            "parent": "main_3",
+            "select_blocks": [
+                {
+                    "block_name": "main_1",
+                    "tables": {
+                        "i": {
+                            "type": "table",
+                            "alias": "i",
+                            "level": "main_3-subquery-m3:main_1",
+                            "name": "cbs.i_dea",
+                            "global_path": "main_3-subquery-m3:main_1"
+                        },
+                        "cds": {
+                            "type": "table",
+                            "alias": "cds",
+                            "level": "main_3-subquery-m3:main_1",
+                            "name": "cbs.c_dep_std",
+                            "global_path": "main_3-subquery-m3:main_1"
+                        }
+                    },
+                    "joins": [
+                        {
+                            "type": "inner",
+                            "table": {
+                                "type": "table",
+                                "name": "cbs.c_dep_std",
+                                "alias": "cds"
+                            },
+                            "join_keys": [
+                                {
+                                    "operator": "eq",
+                                    "left": {
+                                        "table": "cbs.c_dep_std",
+                                        "column": "dep_id"
+                                    },
+                                    "right": {
+                                        "table": "cbs.i_dea",
+                                        "column": "dea_dep_id"
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "column_lineage": {
+                        "id": [
+                            {
+                                "level": "main_3-subquery-m3:main_1",
+                                "table": "cbs.i_dea",
+                                "column": "id"
+                            }
+                        ],
+                        "dep_id": [
+                            {
+                                "level": "main_3-subquery-m3:main_1",
+                                "table": "cbs.c_dep_std",
+                                "column": "dep_id"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    },
+    "mains": {
+        "main_1": {
+            "tables": {
+                "e": {
+                    "type": "table",
+                    "alias": "e",
+                    "level": "main_1",
+                    "name": "cbs.e_reqexc",
+                    "global_path": "main_1"
+                },
+                "t1": {
+                    "type": "cte",
+                    "alias": "t1",
+                    "level": "main_1",
+                    "name": "main-cte-table_1",
+                    "global_path": "main-cte-table_1"
+                },
+                "m2": {
+                    "type": "subquery",
+                    "alias": "m2",
+                    "level": "main_1",
+                    "name": "main_1-subquery-m2",
+                    "global_path": "main_1-subquery-m2"
+                }
+            },
+            "joins": [
+                {
+                    "type": "left",
+                    "table": {
+                        "type": "cte",
+                        "name": "table_1",
+                        "alias": "t1"
+                    },
+                    "join_keys": [
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main-cte-table_1",
+                                "column": "id"
+                            },
+                            "right": {
+                                "table": "cbs.e_reqexc",
+                                "column": "tus_id"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "right",
+                    "table": {
+                        "type": "subquery",
+                        "alias": "m2"
+                    },
+                    "join_keys": [
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main_1-subquery-m2",
+                                "column": "id"
+                            },
+                            "right": {
+                                "table": "cbs.e_reqexc",
+                                "column": "id"
+                            }
+                        },
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main_1-subquery-m2",
+                                "column": "dep_id"
+                            },
+                            "right": {
+                                "table": "cbs.e_reqexc",
+                                "column": "dep_id"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "main_2": {
+            "tables": {
+                "t": {
+                    "type": "table",
+                    "alias": "t",
+                    "level": "main_2",
+                    "name": "cbs.t_dea",
+                    "global_path": "main_2"
+                },
+                "m": {
+                    "type": "cte",
+                    "alias": "m",
+                    "level": "main_2",
+                    "name": "main-cte-main",
+                    "global_path": "main-cte-main"
+                },
+                "m2": {
+                    "type": "subquery",
+                    "alias": "m2",
+                    "level": "main_2",
+                    "name": "main_2-subquery-m2",
+                    "global_path": "main_2-subquery-m2"
+                }
+            },
+            "joins": [
+                {
+                    "type": "inner",
+                    "table": {
+                        "type": "cte",
+                        "name": "main",
+                        "alias": "m"
+                    },
+                    "join_keys": [
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main-cte-main",
+                                "column": "id"
+                            },
+                            "right": {
+                                "table": "cbs.t_dea",
+                                "column": "id"
+                            }
+                        },
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main-cte-main",
+                                "column": "dep_id"
+                            },
+                            "right": {
+                                "table": "cbs.t_dea",
+                                "column": "dep_id"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "right",
+                    "table": {
+                        "type": "subquery",
+                        "alias": "m2"
+                    },
+                    "join_keys": [
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main_2-subquery-m2",
+                                "column": "id"
+                            },
+                            "right": {
+                                "table": "cbs.t_dea",
+                                "column": "id"
+                            }
+                        },
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main_2-subquery-m2",
+                                "column": "dep_id"
+                            },
+                            "right": {
+                                "table": "cbs.t_dea",
+                                "column": "dep_id"
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "main_3": {
+            "tables": {
+                "t2": {
+                    "type": "table",
+                    "alias": "t2",
+                    "level": "main_3",
+                    "name": "cbs.t_dea",
+                    "global_path": "main_3"
+                },
+                "m2": {
+                    "type": "cte",
+                    "alias": "m2",
+                    "level": "main_3",
+                    "name": "main-cte-main",
+                    "global_path": "main-cte-main"
+                },
+                "m3": {
+                    "type": "subquery",
+                    "alias": "m3",
+                    "level": "main_3",
+                    "name": "main_3-subquery-m3",
+                    "global_path": "main_3-subquery-m3"
+                }
+            },
+            "joins": [
+                {
+                    "type": "inner",
+                    "table": {
+                        "type": "cte",
+                        "name": "main",
+                        "alias": "m2"
+                    },
+                    "join_keys": [
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main-cte-main",
+                                "column": "id"
+                            },
+                            "right": {
+                                "table": "cbs.t_dea",
+                                "column": "id"
+                            }
+                        },
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main-cte-main",
+                                "column": "dep_id"
+                            },
+                            "right": {
+                                "table": "cbs.t_dea",
+                                "column": "dep_id"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "type": "right",
+                    "table": {
+                        "type": "subquery",
+                        "alias": "m3"
+                    },
+                    "join_keys": [
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main_3-subquery-m3",
+                                "column": "id"
+                            },
+                            "right": {
+                                "table": "cbs.t_dea",
+                                "column": "id"
+                            }
+                        },
+                        {
+                            "operator": "eq",
+                            "left": {
+                                "table": "main_3-subquery-m3",
+                                "column": "dep_id"
+                            },
+                            "right": {
+                                "table": "cbs.t_dea",
+                                "column": "dep_id"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
